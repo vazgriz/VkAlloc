@@ -79,7 +79,7 @@ VkAllocation vkAlloc(VkMemoryRequirements requirements){
     return vkAllocFlag(requirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
-VkAllocation vkHostAlloc(VkMemoryRequirements requirements){
+VkAllocation vkAllocHost(VkMemoryRequirements requirements){
     return vkAllocFlag(requirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 }
 

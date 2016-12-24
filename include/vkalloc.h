@@ -22,6 +22,6 @@ VkAllocation vkAllocFlag(VkMemoryRequirements requirements, VkMemoryPropertyFlag
 void vkFree(VkAllocation allocation);
 
 VkAllocation vkAlloc(VkMemoryRequirements requirements);
-VkAllocation vkHostAlloc(VkMemoryRequirements requirements);
+VkAllocation vkAllocHost(VkMemoryRequirements requirements);
 
 #endif //VKALLOC_VKALLOC_H
