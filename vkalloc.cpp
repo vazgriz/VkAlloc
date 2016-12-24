@@ -55,10 +55,10 @@ void vkaTerminate(){
     }
 }
 
-VkAllocation vkAlloc(VkMemoryRequirements requirements){
+VkAllocation vkAllocFlag(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags) {
     for (size_t i = 0; i < properties.memoryTypeCount; i++) {
         if ((requirements.memoryTypeBits & (1 << i))
-            && properties.memoryTypes[i].propertyFlags == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+            && properties.memoryTypes[i].propertyFlags == flags) {
             std::vector<Page> &heap = heaps[i];
 
             VkAllocation result = AttemptAlloc(heap, i, requirements);
@@ -75,12 +75,12 @@ void vkFree(VkAllocation allocation){
 
 }
 
-VkAllocation vkHostAlloc(VkMemoryRequirements requirements){
-
+VkAllocation vkAlloc(VkMemoryRequirements requirements){
+    return vkAllocFlag(requirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
-void vkHostFree(VkAllocation allocation){
-
+VkAllocation vkHostAlloc(VkMemoryRequirements requirements){
+    return vkAllocFlag(requirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 }
 
 static VkAllocation AttemptAlloc(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryRequirements requirements) {
