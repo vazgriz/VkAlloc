@@ -132,7 +132,7 @@ static Page* AllocNewPage(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryR
         Page page = {};
         page.deviceMemory = memory;
 
-        Node* node = new Node;
+        Node* node = new Node{};
         node->size = allocSize;
 
         page.head = node;
