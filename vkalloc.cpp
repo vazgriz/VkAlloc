@@ -19,7 +19,7 @@ namespace vka {
     VkDevice device;
     VkPhysicalDeviceMemoryProperties properties;
     VkAllocationCallbacks* callbacks;
-    std::unordered_map<VkDeviceMemory, int32_t> pageMap;    //caches index into one of the vector<Page> heaps
+    std::unordered_map<VkDeviceMemory, uint32_t> pageMap;    //caches index into one of the vector<Page> heaps
     std::vector<Page> heaps[32];    //32 possible heaps
 }
 
