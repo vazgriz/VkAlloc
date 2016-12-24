@@ -32,8 +32,9 @@ void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device, VkAllocationCallb
 }
 
 using namespace vka;
-static VkAllocation AttemptAlloc(std::vector<Page>& heap, VkMemoryRequirements requirements);
+static VkAllocation AttemptAlloc(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryRequirements requirements);
 static VkAllocation AttemptAlloc(Page& page, VkMemoryRequirements requirements);
+static Page* AllocNewPage(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryRequirements requirements);
 
 void vkaTerminate(){
     pageMap.clear();
@@ -59,7 +60,7 @@ VkAllocation vkAlloc(VkMemoryRequirements requirements){
             && properties.memoryTypes[i].propertyFlags == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
             std::vector<Page> &heap = heaps[i];
 
-            VkAllocation result = AttemptAlloc(heap, requirements);
+            VkAllocation result = AttemptAlloc(heap, i, requirements);
             if (result.deviceMemory != VK_NULL_HANDLE) {
                 return result;
             }
@@ -81,10 +82,66 @@ void vkHostFree(VkAllocation allocation){
 
 }
 
-static VkAllocation AttemptAlloc(std::vector<Page>& heap, VkMemoryRequirements requirements) {
+static VkAllocation AttemptAlloc(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryRequirements requirements) {
+    //attempt to allocate from existing pages
+    for (size_t i = 0; i < heap.size(); i++) {
+        Page& page = heap[i];
 
+        VkAllocation result = AttemptAlloc(page, requirements);
+        if (result.deviceMemory != VK_NULL_HANDLE) {
+            return result;
+        }
+    }
+
+    //attempt to allocate from new page
+    Page* newPage = AllocNewPage(heap, heapIndex, requirements);
+    if (newPage) {
+        VkAllocation result = AttemptAlloc(*newPage, requirements);
+        if (result.deviceMemory != VK_NULL_HANDLE) {
+            return result;
+        }
+    }
+
+    //give up
+    return {};
 }
 
-static VkAllocation AttempAlloc(Page& page, VkMemoryRequirements requirements) {
+static VkAllocation AttemptAlloc(Page& page, VkMemoryRequirements requirements) {
+    Node* current = page.head;
 
+    while (current) {
+        uint64_t start = current->offset;
+    }
+}
+
+static Page* AllocNewPage(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryRequirements requirements) {
+    uint64_t allocSize = VKA_ALLOC_SIZE;
+    if (requirements.size > allocSize) {
+        allocSize = requirements.size;
+    }
+
+    VkMemoryAllocateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    info.allocationSize = allocSize;
+    info.memoryTypeIndex = heapIndex;
+
+    VkDeviceMemory memory;
+    VkResult result = vkAllocateMemory(device, &info, callbacks, &memory);
+
+    if (result == VK_SUCCESS){
+        Page page = {};
+        page.deviceMemory = memory;
+
+        Node* node = new Node;
+        node->size = allocSize;
+
+        page.head = node;
+
+        heap.emplace_back(page);
+
+        return &(heap[heap.size() - 1]);
+    } else {
+        //TODO: add way for user to check the error
+        return nullptr;
+    }
 }
