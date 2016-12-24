@@ -35,6 +35,7 @@ using namespace vka;
 static VkAllocation AttemptAlloc(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryRequirements requirements);
 static VkAllocation AttemptAlloc(Page& page, VkMemoryRequirements requirements);
 static Page* AllocNewPage(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryRequirements requirements);
+static void Split(Node* current, Node** last, uint64_t start, uint64_t size);
 
 void vkaTerminate(){
     pageMap.clear();
@@ -108,9 +109,56 @@ static VkAllocation AttemptAlloc(std::vector<Page>& heap, uint32_t heapIndex, Vk
 
 static VkAllocation AttemptAlloc(Page& page, VkMemoryRequirements requirements) {
     Node* current = page.head;
+    Node** last = &page.head;
 
     while (current) {
         uint64_t start = current->offset;
+        uint64_t available = current->size;
+
+        uint64_t unalign = (start % requirements.alignment);
+        uint64_t align;
+
+        if (unalign == 0) {
+            align = 0;
+        } else {
+            align = requirements.alignment - unalign;
+        }
+
+        start += align;
+        available -= align;
+
+        if (available >= requirements.size) {
+            Split(current, last, start, requirements.size);
+            return {page.deviceMemory, start, requirements.size};
+        }
+
+        last = &(current->next);
+        current = current->next;
+    }
+
+    return {};
+}
+
+static void Split(Node* current, Node** last, uint64_t start, uint64_t size) {
+    uint64_t startSpace = start - current->offset;
+    uint64_t endSpace = current->size - (start + size);
+
+    if (startSpace == 0 && endSpace == 0) {
+        *last = current->next;
+        delete current;
+    } else if (startSpace == 0 && endSpace > 0) {
+        current->offset = start + size;
+        current->size = endSpace;
+    } else if (startSpace > 0 && endSpace == 0) {
+        current->size = startSpace;
+    } else {    //startSpace > 0 && endSpace > 0
+        Node* newNode = new Node{};
+        newNode->next = current->next;
+        newNode->offset = start + size;
+        newNode->size = endSpace;
+
+        current->next = newNode;
+        current->size = startSpace;
     }
 }
 
