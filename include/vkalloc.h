@@ -1,9 +1,6 @@
 #ifndef VKALLOC_VKALLOC_H
 #define VKALLOC_VKALLOC_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -13,23 +10,19 @@ extern "C" {
 #define VKA_ALLOC_SIZE 1024*1024*4
 #endif
 
-typedef struct {
+struct VkAllocation {
     VkDeviceMemory deviceMemory;
     uint64_t offset;
     uint64_t size;
-} VkAllocation;
+};
 
 void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device);
 void vkaTerminate();
 
-VkAllocation vkAlloc(uint64_t size, uint32_t mask);
+VkAllocation vkAlloc(VkMemoryRequirements requirements);
 void vkFree(VkAllocation allocation);
 
-VkAllocation vkHostAlloc(uint64_t size, uint32_t mask);
+VkAllocation vkHostAlloc(VkMemoryRequirements requirements);
 void vkHostFree(VkAllocation allocation);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif //VKALLOC_VKALLOC_H
