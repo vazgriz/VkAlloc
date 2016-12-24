@@ -1,7 +1,6 @@
 #ifndef VKALLOC_VKALLOC_H
 #define VKALLOC_VKALLOC_H
 
-
 #include <stdlib.h>
 #include <stdint.h>
 #include <vulkan/vulkan.h>
