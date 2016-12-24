@@ -23,9 +23,10 @@ namespace vka {
     std::vector<Page> heaps[32];    //32 possible heaps
 }
 
-void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device){
+void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device, VkAllocationCallbacks* allocator){
     vka::physicalDevice = physicalDevice;
     vka::device = device;
+    vka::callbacks = allocator;
 
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &vka::properties);
 }
