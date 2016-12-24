@@ -15,11 +15,16 @@ namespace vka {
         uint64_t size = 0;
     };
 
+    struct PageMapping {
+        uint32_t heapIndex;
+        uint32_t pageIndex;
+    };
+
     VkPhysicalDevice physicalDevice;
     VkDevice device;
     VkPhysicalDeviceMemoryProperties properties;
     VkAllocationCallbacks* callbacks;
-    std::unordered_map<VkDeviceMemory, uint32_t> pageMap;    //caches index into one of the vector<Page> heaps
+    std::unordered_map<VkDeviceMemory, PageMapping> pageMap;    //caches index into one of the vector<Page> heaps
     std::vector<Page> heaps[32];    //32 possible heaps
 }
 
@@ -187,7 +192,7 @@ static Page* AllocNewPage(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryR
 
         heap.emplace_back(page);
 
-        pageMap[memory] = heapIndex;
+        pageMap[memory] = {heapIndex, static_cast<uint32_t>(heap.size() - 1)};
 
         return &(heap[heap.size() - 1]);
     } else {
