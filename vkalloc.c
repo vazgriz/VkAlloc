@@ -20,6 +20,8 @@ VkDevice vkaDevice;
 VkPhysicalDeviceMemoryProperties memProperties;
 Page* vkaPageHeads[32];   //there can be a max of 32 different memory heaps
 
+const VkAllocation EmptyAllocation;
+
 //can't be [0..31]
 #define INDEX_NOT_FOUND 32
 
@@ -55,7 +57,7 @@ void vkaTerminate(){
 }
 
 VkAllocation vkAlloc(uint64_t size, uint32_t mask){
-    VkAllocation result = {};
+    VkAllocation result = EmptyAllocation;
     uint32_t index = FindIndex(mask, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     if (index == INDEX_NOT_FOUND){
@@ -70,7 +72,7 @@ void vkFree(VkAllocation allocation){
 }
 
 VkAllocation vkHostAlloc(uint64_t size, uint32_t mask){
-    VkAllocation result = {};
+    VkAllocation result = EmptyAllocation;
     uint32_t index = FindIndex(mask, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
     if (index == INDEX_NOT_FOUND){
@@ -120,7 +122,7 @@ static VkAllocation AttemptAllocFromHeap(uint32_t index, uint64_t size){
     if (newPage) {
         return AttemptAllocFromPage(newPage, size);
     } else{
-        return (VkAllocation){};
+        return EmptyAllocation;
     }
 }
 
@@ -158,8 +160,9 @@ static Page* AttemptAllocPage(Page** slot, uint32_t index, uint64_t size){
         allocSize = size;
     }
 
-    VkMemoryAllocateInfo info = {};
+    VkMemoryAllocateInfo info;
     info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    info.pNext = NULL;
     info.allocationSize = allocSize;
     info.memoryTypeIndex = index;
 
