@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#include <stdlib.h>
 #include <stdint.h>
 #include <vulkan/vulkan.h>
 
@@ -12,10 +13,9 @@ extern "C" {
 #define VKA_ALLOC_SIZE 1024*1024*4
 #endif
 
-#define VKA_ALLOC_FAILED ~0u
-
 typedef struct {
-    uint64_t address;
+    VkDeviceMemory deviceMemory;
+    uint64_t offset;
     uint64_t size;
 } VkAllocation;
 
