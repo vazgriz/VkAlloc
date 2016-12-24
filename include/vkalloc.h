@@ -10,9 +10,9 @@
 #endif
 
 struct VkAllocation {
-    VkDeviceMemory deviceMemory;
-    uint64_t offset;
-    uint64_t size;
+    VkDeviceMemory deviceMemory = VK_NULL_HANDLE;
+    uint64_t offset = 0;
+    uint64_t size = 0;
 };
 
 void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device);
