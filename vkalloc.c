@@ -183,6 +183,8 @@ static Page* AttemptAllocPage(Page** slot, uint32_t index, uint64_t size){
 
         Page* newPage = malloc(sizeof(Page));
         *newPage = (Page){.memory = deviceMemory, .head = newNode};
+
+        return newPage;
     } else {
         return NULL;
     }
