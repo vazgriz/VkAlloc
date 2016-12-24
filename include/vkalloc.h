@@ -15,7 +15,7 @@ struct VkAllocation {
     uint64_t size = 0;
 };
 
-void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device);
+void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device, VkAllocationCallbacks* allocator);
 void vkaTerminate();
 
 VkAllocation vkAlloc(VkMemoryRequirements requirements);
