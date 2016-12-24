@@ -132,7 +132,9 @@ static VkAllocation AttemptAllocFromPage(Page* page, uint64_t size){
 
     while (current) {
         if (current->size >= size){
-            Split(last, size);
+            VkAllocation result = Split(last, size);
+            result.deviceMemory = page->memory;
+            return result;
         }
         last = &(current->next);
         current = current->next;
@@ -145,6 +147,10 @@ static VkAllocation Split(Node** head, uint64_t size){
     uint64_t amountLeft = (*head)->size - size;
     Node* current = *head;
 
+    VkAllocation result;
+    result.offset = current->offset;
+    result.size = size;
+
     if (amountLeft == 0){
         free(current);
         head = &((*head)->next);
@@ -152,6 +158,8 @@ static VkAllocation Split(Node** head, uint64_t size){
         current->offset += size;
         current->size = amountLeft;
     }
+
+    return result;
 }
 
 static Page* AttemptAllocPage(Page** slot, uint32_t index, uint64_t size){
