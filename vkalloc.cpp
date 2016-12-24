@@ -187,6 +187,8 @@ static Page* AllocNewPage(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryR
 
         heap.emplace_back(page);
 
+        pageMap[memory] = heapIndex;
+
         return &(heap[heap.size() - 1]);
     } else {
         //TODO: add way for user to check the error
