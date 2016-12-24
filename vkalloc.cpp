@@ -26,6 +26,7 @@ void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device){
     vka::physicalDevice = physicalDevice;
     vka::device = device;
 
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &vka::properties);
 }
 
 using namespace vka;
