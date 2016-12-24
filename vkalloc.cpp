@@ -30,6 +30,8 @@ void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device){
 }
 
 using namespace vka;
+static VkAllocation AttemptAlloc(std::vector<Page>& heap, VkMemoryRequirements requirements);
+static VkAllocation AttemptAlloc(Page& page, VkMemoryRequirements requirements);
 
 void vkaTerminate(){
     pageMap.clear();
@@ -50,7 +52,19 @@ void vkaTerminate(){
 }
 
 VkAllocation vkAlloc(VkMemoryRequirements requirements){
+    for (size_t i = 0; i < properties.memoryTypeCount; i++) {
+        if ((requirements.memoryTypeBits & (1 << i))
+            && properties.memoryTypes[i].propertyFlags == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+            std::vector<Page> &heap = heaps[i];
 
+            VkAllocation result = AttemptAlloc(heap, requirements);
+            if (result.deviceMemory != VK_NULL_HANDLE) {
+                return result;
+            }
+        }
+    }
+
+    return {};
 }
 
 void vkFree(VkAllocation allocation){
@@ -62,5 +76,13 @@ VkAllocation vkHostAlloc(VkMemoryRequirements requirements){
 }
 
 void vkHostFree(VkAllocation allocation){
+
+}
+
+static VkAllocation AttemptAlloc(std::vector<Page>& heap, VkMemoryRequirements requirements) {
+
+}
+
+static VkAllocation AttempAlloc(Page& page, VkMemoryRequirements requirements) {
 
 }
