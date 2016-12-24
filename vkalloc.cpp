@@ -5,14 +5,14 @@
 
 namespace vka {
     struct Page {
-        VkDeviceMemory deviceMemory;
+        VkDeviceMemory deviceMemory = VK_NULL_HANDLE;
         Node* head = nullptr;
     };
 
     struct Node {
         Node* next = nullptr;
-        uint64_t offset;
-        uint64_t size;
+        uint64_t offset = 0;
+        uint64_t size = 0;
     };
 
     VkPhysicalDevice physicalDevice;
