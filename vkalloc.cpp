@@ -20,7 +20,6 @@ namespace vka {
         uint32_t pageIndex;
     };
 
-    VkPhysicalDevice physicalDevice;
     VkDevice device;
     VkPhysicalDeviceMemoryProperties properties;
     VkAllocationCallbacks* callbacks;
@@ -29,7 +28,6 @@ namespace vka {
 }
 
 void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device, VkAllocationCallbacks* allocator){
-    vka::physicalDevice = physicalDevice;
     vka::device = device;
     vka::callbacks = allocator;
 
