@@ -15,4 +15,4 @@ These functions start with "vk" instead of "vka"
 
 `vkAllocFlags` allocates memory that satisfies the given flags and returns a VkAllocation object
 
-`vkFree` frees the memory pointer to by the given VkAllocation object
+`vkFree` frees the memory pointed to by the given VkAllocation object
