@@ -37,7 +37,7 @@ void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device, VkAllocationCallb
 
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &vka::properties);
 
-    heaps.resize(static_cast<uint32_t>(vka::properties.memoryHeapCount));
+    vka::heaps.resize(static_cast<uint32_t>(vka::properties.memoryHeapCount));
 }
 
 using namespace vka;
