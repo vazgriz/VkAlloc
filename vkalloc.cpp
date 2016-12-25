@@ -70,7 +70,7 @@ void vkaTerminate(){
     heaps.clear();
 }
 
-VkAllocation vkaAllocFlag(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags) {
+VkAllocation vkaAlloc(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags) {
     for (size_t i = 0; i < properties.memoryTypeCount; i++) {
         if ((requirements.memoryTypeBits & (1 << i))
             && (properties.memoryTypes[i].propertyFlags & flags) == flags) {
