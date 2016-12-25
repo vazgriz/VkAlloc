@@ -95,14 +95,6 @@ void vkaFree(VkAllocation allocation){
     Free(allocation, page);
 }
 
-VkAllocation vkaAlloc(VkMemoryRequirements requirements){
-    return vkaAllocFlag(requirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-}
-
-VkAllocation vkaAllocHost(VkMemoryRequirements requirements){
-    return vkaAllocFlag(requirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-}
-
 static VkAllocation AttemptAlloc(uint32_t typeIndex, uint32_t heapIndex, VkMemoryRequirements requirements) {
     std::vector<Page>& heap = heaps[heapIndex];
     //attempt to allocate from existing pages

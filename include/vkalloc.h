@@ -17,7 +17,4 @@ void vkaTerminate();
 VkAllocation vkaAllocFlag(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags);
 void vkaFree(VkAllocation allocation);
 
-VkAllocation vkaAlloc(VkMemoryRequirements requirements);
-VkAllocation vkaAllocHost(VkMemoryRequirements requirements);
-
 #endif //VKALLOC_VKALLOC_H
