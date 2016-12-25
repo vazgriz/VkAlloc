@@ -37,13 +37,13 @@ void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device, VkAllocationCallb
 
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &vka::properties);
 
-    vka::heaps.resize(static_cast<uint32_t>(vka::properties.memoryHeapCount));
+    vka::heaps.resize(vka::properties.memoryHeapCount);
 }
 
 using namespace vka;
-static VkAllocation AttemptAlloc(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryRequirements requirements);
+static VkAllocation AttemptAlloc(uint32_t typeIndex, uint32_t heapIndex, VkMemoryRequirements requirements);
 static VkAllocation AttemptAlloc(Page& page, VkMemoryRequirements requirements);
-static Page* AllocNewPage(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryRequirements requirements);
+static Page* AllocNewPage(std::vector<Page>& heap, uint32_t typeIndex, uint32_t heapIndex, VkMemoryRequirements requirements);
 static void Split(Node* current, Node** last, uint64_t start, uint64_t size);
 static void Free(VkAllocation allocation, Page& page);
 static void Merge(VkAllocation allocation, Node* current);
@@ -52,8 +52,8 @@ void vkaTerminate(){
     pageMap.clear();
 
     for (auto& heap : heaps) {
-        for (size_t j = 0; j < heap.size(); j++) {
-            Node* current = heap[j].head;
+        for (auto& page : heap) {
+            Node* current = page.head;
 
             while (current){
                 Node* next = current->next;
@@ -61,20 +61,22 @@ void vkaTerminate(){
                 current = next;
             }
 
-            vkFreeMemory(device, heap[j].deviceMemory, callbacks);
+            vkFreeMemory(device, page.deviceMemory, callbacks);
         }
 
         heap.clear();
     }
+
+    heaps.clear();
 }
 
 VkAllocation vkaAllocFlag(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags) {
     for (size_t i = 0; i < properties.memoryTypeCount; i++) {
         if ((requirements.memoryTypeBits & (1 << i))
-            && (properties.memoryTypes[i].propertyFlags & flags)) {
-            std::vector<Page>& heap = heaps[properties.memoryTypes[i].heapIndex];
+            && (properties.memoryTypes[i].propertyFlags & flags) == flags) {
+            uint32_t heapIndex = properties.memoryTypes[i].heapIndex;
 
-            VkAllocation result = AttemptAlloc(heap, static_cast<uint32_t>(i), requirements);
+            VkAllocation result = AttemptAlloc(static_cast<uint32_t>(i), heapIndex, requirements);
             if (result.deviceMemory != VK_NULL_HANDLE) {
                 return result;
             }
@@ -101,11 +103,10 @@ VkAllocation vkaAllocHost(VkMemoryRequirements requirements){
     return vkaAllocFlag(requirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 }
 
-static VkAllocation AttemptAlloc(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryRequirements requirements) {
+static VkAllocation AttemptAlloc(uint32_t typeIndex, uint32_t heapIndex, VkMemoryRequirements requirements) {
+    std::vector<Page>& heap = heaps[heapIndex];
     //attempt to allocate from existing pages
-    for (size_t i = 0; i < heap.size(); i++) {
-        Page& page = heap[i];
-
+    for (Page& page : heap) {
         VkAllocation result = AttemptAlloc(page, requirements);
         if (result.deviceMemory != VK_NULL_HANDLE) {
             return result;
@@ -113,7 +114,7 @@ static VkAllocation AttemptAlloc(std::vector<Page>& heap, uint32_t heapIndex, Vk
     }
 
     //attempt to allocate from new page
-    Page* newPage = AllocNewPage(heap, heapIndex, requirements);
+    Page* newPage = AllocNewPage(heap, typeIndex, heapIndex, requirements);
     if (newPage) {
         VkAllocation result = AttemptAlloc(*newPage, requirements);
         if (result.deviceMemory != VK_NULL_HANDLE) {
@@ -184,7 +185,7 @@ static void Split(Node* current, Node** last, uint64_t start, uint64_t size) {
     }
 }
 
-static Page* AllocNewPage(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryRequirements requirements) {
+static Page* AllocNewPage(std::vector<Page>& heap, uint32_t typeIndex, uint32_t heapIndex, VkMemoryRequirements requirements) {
     uint64_t allocSize = VKA_ALLOC_SIZE;
     if (requirements.size > allocSize) {
         allocSize = requirements.size;
@@ -193,25 +194,25 @@ static Page* AllocNewPage(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryR
     VkMemoryAllocateInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     info.allocationSize = allocSize;
-    info.memoryTypeIndex = heapIndex;
+    info.memoryTypeIndex = typeIndex;
 
     VkDeviceMemory memory;
     VkResult result = vkAllocateMemory(device, &info, callbacks, &memory);
 
     if (result == VK_SUCCESS){
-        Page page = {};
-        page.deviceMemory = memory;
-
         Node* node = new Node;
         node->size = allocSize;
 
+        Page page = {};
+        page.deviceMemory = memory;
         page.head = node;
 
         heap.emplace_back(page);
+        uint32_t pageIndex = static_cast<uint32_t>(heap.size() - 1);
 
-        pageMap[memory] = {heapIndex, static_cast<uint32_t>(heap.size() - 1)};
+        pageMap[memory] = {heapIndex, pageIndex};
 
-        return &(heap[heap.size() - 1]);
+        return &(heap[pageIndex]);
     } else {
         //TODO: add way for user to check the error
         return nullptr;
