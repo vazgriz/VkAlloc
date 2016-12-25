@@ -41,6 +41,8 @@ static VkAllocation AttemptAlloc(std::vector<Page>& heap, uint32_t heapIndex, Vk
 static VkAllocation AttemptAlloc(Page& page, VkMemoryRequirements requirements);
 static Page* AllocNewPage(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryRequirements requirements);
 static void Split(Node* current, Node** last, uint64_t start, uint64_t size);
+static void Free(VkAllocation allocation, Page& page);
+static void Merge(VkAllocation allocation, Node* current);
 
 void vkaTerminate(){
     pageMap.clear();
@@ -77,7 +79,12 @@ VkAllocation vkAllocFlag(VkMemoryRequirements requirements, VkMemoryPropertyFlag
 }
 
 void vkFree(VkAllocation allocation){
+    if (allocation.deviceMemory == VK_NULL_HANDLE) return;
 
+    PageMapping& mapping = pageMap[allocation.deviceMemory];
+    Page& page = heaps[mapping.heapIndex][mapping.pageIndex];
+
+    Free(allocation, page);
 }
 
 VkAllocation vkAlloc(VkMemoryRequirements requirements){
@@ -198,5 +205,36 @@ static Page* AllocNewPage(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryR
     } else {
         //TODO: add way for user to check the error
         return nullptr;
+    }
+}
+
+static void Free(VkAllocation allocation, Page& page) {
+    Node* current = page.head;
+
+    while (current) {
+        if (allocation.offset > current->offset && allocation.offset < current->next->offset) {
+            Merge(allocation, current);
+            return;
+        }
+    }
+}
+
+static void Merge(VkAllocation allocation, Node* current) {
+    if (allocation.offset == current->offset + current->size) {
+        current->size += allocation.size;
+    } else {
+        Node* newNode = new Node;
+        newNode->next = current->next,
+        newNode->offset = allocation.offset,
+        newNode->size = allocation.size;
+
+        current = newNode;
+    }
+
+    Node* next = current->next;
+    if (next->offset == current->offset + current->size) {
+        current->size += next->size;
+        current->next = next->next;
+        delete next;
     }
 }
