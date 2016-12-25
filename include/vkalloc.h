@@ -14,10 +14,10 @@ struct VkAllocation {
 void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device, VkAllocationCallbacks* allocator);
 void vkaTerminate();
 
-VkAllocation vkAllocFlag(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags);
-void vkFree(VkAllocation allocation);
+VkAllocation vkaAllocFlag(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags);
+void vkaFree(VkAllocation allocation);
 
-VkAllocation vkAlloc(VkMemoryRequirements requirements);
-VkAllocation vkAllocHost(VkMemoryRequirements requirements);
+VkAllocation vkaAlloc(VkMemoryRequirements requirements);
+VkAllocation vkaAllocHost(VkMemoryRequirements requirements);
 
 #endif //VKALLOC_VKALLOC_H

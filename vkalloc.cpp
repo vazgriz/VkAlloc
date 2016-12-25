@@ -66,7 +66,7 @@ void vkaTerminate(){
     }
 }
 
-VkAllocation vkAllocFlag(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags) {
+VkAllocation vkaAllocFlag(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags) {
     for (size_t i = 0; i < properties.memoryTypeCount; i++) {
         if ((requirements.memoryTypeBits & (1 << i))
             && properties.memoryTypes[i].propertyFlags == flags) {
@@ -82,7 +82,7 @@ VkAllocation vkAllocFlag(VkMemoryRequirements requirements, VkMemoryPropertyFlag
     return {};
 }
 
-void vkFree(VkAllocation allocation){
+void vkaFree(VkAllocation allocation){
     if (allocation.deviceMemory == VK_NULL_HANDLE) return;
 
     PageMapping& mapping = pageMap[allocation.deviceMemory];
@@ -91,12 +91,12 @@ void vkFree(VkAllocation allocation){
     Free(allocation, page);
 }
 
-VkAllocation vkAlloc(VkMemoryRequirements requirements){
-    return vkAllocFlag(requirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+VkAllocation vkaAlloc(VkMemoryRequirements requirements){
+    return vkaAllocFlag(requirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
-VkAllocation vkAllocHost(VkMemoryRequirements requirements){
-    return vkAllocFlag(requirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+VkAllocation vkaAllocHost(VkMemoryRequirements requirements){
+    return vkaAllocFlag(requirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 }
 
 static VkAllocation AttemptAlloc(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryRequirements requirements) {
