@@ -226,6 +226,8 @@ static void Free(VkAllocation allocation, Page& page) {
             Merge(allocation, current);
             return;
         }
+
+        current = current->next;
     }
 }
 
