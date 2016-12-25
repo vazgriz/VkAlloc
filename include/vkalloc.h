@@ -5,10 +5,6 @@
 #include <stdint.h>
 #include <vulkan/vulkan.h>
 
-#ifndef VKA_ALLOC_SIZE
-#define VKA_ALLOC_SIZE 1024*1024*4
-#endif
-
 struct VkAllocation {
     VkDeviceMemory deviceMemory = VK_NULL_HANDLE;
     uint64_t offset = 0;

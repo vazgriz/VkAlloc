@@ -3,6 +3,10 @@
 #include <vector>
 #include <unordered_map>
 
+#ifndef VKA_ALLOC_SIZE
+#define VKA_ALLOC_SIZE 1024*1024*4
+#endif
+
 namespace vka {
     struct Node {
         Node* next = nullptr;
@@ -66,7 +70,7 @@ VkAllocation vkAllocFlag(VkMemoryRequirements requirements, VkMemoryPropertyFlag
             && properties.memoryTypes[i].propertyFlags == flags) {
             std::vector<Page> &heap = heaps[i];
 
-            VkAllocation result = AttemptAlloc(heap, i, requirements);
+            VkAllocation result = AttemptAlloc(heap, static_cast<uint32_t>(i), requirements);
             if (result.deviceMemory != VK_NULL_HANDLE) {
                 return result;
             }
