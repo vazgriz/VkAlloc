@@ -157,7 +157,7 @@ static void Split(Node* current, Node** last, uint64_t start, uint64_t size) {
     } else if (startSpace > 0 && endSpace == 0) {
         current->size = startSpace;
     } else {    //startSpace > 0 && endSpace > 0
-        Node* newNode = new Node{};
+        Node* newNode = new Node;
         newNode->next = current->next;
         newNode->offset = start + size;
         newNode->size = endSpace;
@@ -185,7 +185,7 @@ static Page* AllocNewPage(std::vector<Page>& heap, uint32_t heapIndex, VkMemoryR
         Page page = {};
         page.deviceMemory = memory;
 
-        Node* node = new Node{};
+        Node* node = new Node;
         node->size = allocSize;
 
         page.head = node;
