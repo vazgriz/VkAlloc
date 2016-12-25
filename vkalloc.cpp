@@ -28,7 +28,7 @@ namespace vka {
     VkPhysicalDeviceMemoryProperties properties;
     VkAllocationCallbacks* callbacks;
     std::unordered_map<VkDeviceMemory, PageMapping> pageMap;    //caches index into one of the vector<Page> heaps
-    std::vector<Page> heaps[32];    //32 possible heaps
+    std::vector<std::vector<Page>> heaps;
 }
 
 void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device, VkAllocationCallbacks* allocator){
@@ -36,6 +36,8 @@ void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device, VkAllocationCallb
     vka::callbacks = allocator;
 
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &vka::properties);
+
+    heaps.resize(static_cast<uint32_t>(vka::properties.memoryHeapCount));
 }
 
 using namespace vka;
@@ -49,9 +51,9 @@ static void Merge(VkAllocation allocation, Node* current);
 void vkaTerminate(){
     pageMap.clear();
 
-    for (size_t i = 0; i < 32; i++) {
-        for (size_t j = 0; j < heaps[i].size(); j++) {
-            Node* current = heaps[i][j].head;
+    for (auto& heap : heaps) {
+        for (size_t j = 0; j < heap.size(); j++) {
+            Node* current = heap[j].head;
 
             while (current){
                 Node* next = current->next;
@@ -59,18 +61,18 @@ void vkaTerminate(){
                 current = next;
             }
 
-            vkFreeMemory(device, heaps[i][j].deviceMemory, callbacks);
+            vkFreeMemory(device, heap[j].deviceMemory, callbacks);
         }
 
-        heaps[i].clear();
+        heap.clear();
     }
 }
 
 VkAllocation vkaAllocFlag(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags) {
     for (size_t i = 0; i < properties.memoryTypeCount; i++) {
         if ((requirements.memoryTypeBits & (1 << i))
-            && properties.memoryTypes[i].propertyFlags == flags) {
-            std::vector<Page> &heap = heaps[i];
+            && (properties.memoryTypes[i].propertyFlags & flags)) {
+            std::vector<Page>& heap = heaps[properties.memoryTypes[i].heapIndex];
 
             VkAllocation result = AttemptAlloc(heap, static_cast<uint32_t>(i), requirements);
             if (result.deviceMemory != VK_NULL_HANDLE) {
