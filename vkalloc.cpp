@@ -58,6 +58,8 @@ void vkaTerminate(){
                 delete current;
                 current = next;
             }
+
+            vkFreeMemory(device, heaps[i][j].deviceMemory, callbacks);
         }
 
         heaps[i].clear();
