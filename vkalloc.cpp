@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #ifndef VKA_ALLOC_SIZE
-#define VKA_ALLOC_SIZE 1024*1024*4
+#define VKA_ALLOC_SIZE 1024*1024*32
 #endif
 
 namespace vka {
