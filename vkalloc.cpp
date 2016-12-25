@@ -4,15 +4,15 @@
 #include <unordered_map>
 
 namespace vka {
-    struct Page {
-        VkDeviceMemory deviceMemory = VK_NULL_HANDLE;
-        Node* head = nullptr;
-    };
-
     struct Node {
         Node* next = nullptr;
         uint64_t offset = 0;
         uint64_t size = 0;
+    };
+
+    struct Page {
+        VkDeviceMemory deviceMemory = VK_NULL_HANDLE;
+        Node* head = nullptr;
     };
 
     struct PageMapping {
