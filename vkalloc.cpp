@@ -139,7 +139,11 @@ static VkAllocation AttemptAlloc(Page& page, VkMemoryRequirements requirements) 
 
         if (available >= requirements.size) {
             Split(current, last, start, requirements.size);
-            return {page.deviceMemory, start, requirements.size};
+            VkAllocation result;
+            result.deviceMemory = page.deviceMemory;
+            result.offset = start;
+            result.size = requirements.size;
+            return result;
         }
 
         last = &(current->next);
