@@ -19,6 +19,10 @@ namespace vka {
         Node* head = nullptr;
     };
 
+    struct Heap {
+        std::vector<Page> pages;
+    };
+
     struct PageMapping {
         uint32_t heapIndex;
         uint32_t pageIndex;
@@ -28,7 +32,7 @@ namespace vka {
     VkPhysicalDeviceMemoryProperties properties;
     VkAllocationCallbacks* callbacks;
     std::unordered_map<VkDeviceMemory, PageMapping> pageMap;    //caches index into one of the vector<Page> heaps
-    std::vector<std::vector<Page>> heaps;
+    std::vector<Heap> heaps;
 }
 
 void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device, VkAllocationCallbacks* allocator){
@@ -52,7 +56,7 @@ void vkaTerminate(){
     pageMap.clear();
 
     for (auto& heap : heaps) {
-        for (auto& page : heap) {
+        for (auto& page : heap.pages) {
             Node* current = page.head;
 
             while (current){
@@ -64,7 +68,7 @@ void vkaTerminate(){
             vkFreeMemory(device, page.deviceMemory, callbacks);
         }
 
-        heap.clear();
+        heap.pages.clear();
     }
 
     heaps.clear();
@@ -90,13 +94,13 @@ void vkaFree(VkAllocation allocation){
     if (allocation.deviceMemory == VK_NULL_HANDLE) return;
 
     PageMapping& mapping = pageMap[allocation.deviceMemory];
-    Page& page = heaps[mapping.heapIndex][mapping.pageIndex];
+    Page& page = heaps[mapping.heapIndex].pages[mapping.pageIndex];
 
     Free(allocation, page);
 }
 
 static VkAllocation AttemptAlloc(uint32_t typeIndex, uint32_t heapIndex, VkMemoryRequirements requirements) {
-    std::vector<Page>& heap = heaps[heapIndex];
+    std::vector<Page>& heap = heaps[heapIndex].pages;
     //attempt to allocate from existing pages
     for (Page& page : heap) {
         VkAllocation result = AttemptAlloc(page, requirements);
