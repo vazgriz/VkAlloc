@@ -100,9 +100,10 @@ void vkaFree(VkAllocation allocation){
 }
 
 static VkAllocation AttemptAlloc(uint32_t typeIndex, uint32_t heapIndex, VkMemoryRequirements requirements) {
-    std::vector<Page>& heap = heaps[heapIndex].pages;
+    std::vector<Page>& pages = heaps[heapIndex].pages;
+
     //attempt to allocate from existing pages
-    for (Page& page : heap) {
+    for (Page& page : pages) {
         VkAllocation result = AttemptAlloc(page, requirements);
         if (result.deviceMemory != VK_NULL_HANDLE) {
             return result;
@@ -110,7 +111,7 @@ static VkAllocation AttemptAlloc(uint32_t typeIndex, uint32_t heapIndex, VkMemor
     }
 
     //attempt to allocate from new page
-    Page* newPage = AllocNewPage(heap, typeIndex, heapIndex, requirements);
+    Page* newPage = AllocNewPage(pages, typeIndex, heapIndex, requirements);
     if (newPage) {
         VkAllocation result = AttemptAlloc(*newPage, requirements);
         if (result.deviceMemory != VK_NULL_HANDLE) {
