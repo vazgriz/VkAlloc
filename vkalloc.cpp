@@ -32,7 +32,7 @@ namespace vka {
     VkPhysicalDeviceMemoryProperties properties;
     VkAllocationCallbacks* callbacks;
     std::unordered_map<VkDeviceMemory, PageMapping> pageMap;    //caches index into one of the vector<Page> heaps
-    std::vector<Heap> heaps;
+    Heap* heaps;
 }
 
 void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device, VkAllocationCallbacks* allocator){
@@ -41,7 +41,7 @@ void vkaInit(VkPhysicalDevice physicalDevice, VkDevice device, VkAllocationCallb
 
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &vka::properties);
 
-    vka::heaps.resize(vka::properties.memoryHeapCount);
+    vka::heaps = new vka::Heap[vka::properties.memoryHeapCount];
 }
 
 using namespace vka;
@@ -55,7 +55,8 @@ static void Merge(VkAllocation allocation, Node* current);
 void vkaTerminate(){
     pageMap.clear();
 
-    for (auto& heap : heaps) {
+    for (size_t i = 0; i < properties.memoryHeapCount; i++) {
+        Heap& heap = heaps[i];
         for (auto& page : heap.pages) {
             Node* current = page.head;
 
@@ -71,7 +72,7 @@ void vkaTerminate(){
         heap.pages.clear();
     }
 
-    heaps.clear();
+    delete heaps;
 }
 
 VkAllocation vkaAlloc(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags) {
@@ -100,7 +101,8 @@ void vkaFree(VkAllocation allocation){
 }
 
 static VkAllocation AttemptAlloc(uint32_t typeIndex, uint32_t heapIndex, VkMemoryRequirements requirements) {
-    std::vector<Page>& pages = heaps[heapIndex].pages;
+    Heap& heap = heaps[heapIndex];
+    std::vector<Page>& pages = heap.pages;
 
     //attempt to allocate from existing pages
     for (Page& page : pages) {
