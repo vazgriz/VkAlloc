@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <mutex>
 
 #ifndef VKA_ALLOC_SIZE
 #define VKA_ALLOC_SIZE 1024*1024*32
@@ -21,6 +22,7 @@ namespace vka {
 
     struct Heap {
         std::vector<Page> pages;
+        std::mutex mutex;
     };
 
     struct PageMapping {
@@ -104,10 +106,13 @@ static VkAllocation AttemptAlloc(uint32_t typeIndex, uint32_t heapIndex, VkMemor
     Heap& heap = heaps[heapIndex];
     std::vector<Page>& pages = heap.pages;
 
+    heap.mutex.lock();
+
     //attempt to allocate from existing pages
     for (Page& page : pages) {
         VkAllocation result = AttemptAlloc(page, requirements);
         if (result.deviceMemory != VK_NULL_HANDLE) {
+            heap.mutex.unlock();
             return result;
         }
     }
@@ -117,11 +122,13 @@ static VkAllocation AttemptAlloc(uint32_t typeIndex, uint32_t heapIndex, VkMemor
     if (newPage) {
         VkAllocation result = AttemptAlloc(*newPage, requirements);
         if (result.deviceMemory != VK_NULL_HANDLE) {
+            heap.mutex.unlock();
             return result;
         }
     }
 
     //give up
+    heap.mutex.unlock();
     return {};
 }
 
