@@ -74,7 +74,7 @@ void vkaTerminate(){
         heap.pages.clear();
     }
 
-    delete heaps;
+    delete[] heaps;
 }
 
 VkAllocation vkaAlloc(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags) {
