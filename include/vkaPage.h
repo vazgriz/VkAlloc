@@ -1,0 +1,4 @@
+#ifndef VKALLOC_VKAPAGE_H
+#define VKALLOC_VKAPAGE_H
+
+#endif //VKALLOC_VKAPAGE_H

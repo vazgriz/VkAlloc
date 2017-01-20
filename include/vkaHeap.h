@@ -1,0 +1,4 @@
+#ifndef VKALLOC_VKAHEAP_H
+#define VKALLOC_VKAHEAP_H
+
+#endif //VKALLOC_VKAHEAP_H
