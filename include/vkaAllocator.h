@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <unordered_map>
+#include <memory>
 
 #include "include/vkaAllocation.h"
 #include "include/vkaHeap.h"
@@ -21,7 +22,7 @@ namespace vka {
         VkDevice device;
         VkAllocationCallbacks* callbacks;
 
-        std::vector<Heap*> heaps;   //heap contains a mutex, which can't be moved
+        std::vector<Heap> heaps;   //heap contains a mutex, which can't be moved
         std::unordered_map<VkDeviceMemory, Page*> pageMap;
     };
 }

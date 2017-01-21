@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 #include <mutex>
+#include <memory>
 
 #include "include/vkaAllocation.h"
 #include "include/vkaPage.h"
@@ -26,7 +27,7 @@ namespace vka {
         std::set<uint32_t> typeIndices;
         std::vector<VkMemoryPropertyFlags> heapFlags;
         std::vector<Page> pages;
-        std::mutex mutex;
+        std::unique_ptr<std::mutex> mutex;
     };
 }
 

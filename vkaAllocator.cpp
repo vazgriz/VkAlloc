@@ -11,15 +11,15 @@ Allocator::Allocator(VkPhysicalDevice physicalDevice, VkDevice device, VkAllocat
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &props);
 
     for (size_t i = 0; i < props.memoryHeapCount; i++) {
-        heaps.emplace_back(new Heap(static_cast<uint32_t>(i), pageSize, props));
+        heaps.emplace_back(static_cast<uint32_t>(i), pageSize, props);
     }
 }
 
 VkaAllocation Allocator::Alloc(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags) {
     for (size_t i = 0; i < heaps.size(); i++) {
         uint32_t typeIndex;
-        if (heaps[i]->Match(requirements, flags, &typeIndex)) {
-            VkaAllocation result = heaps[i]->Alloc(requirements, typeIndex);
+        if (heaps[i].Match(requirements, flags, &typeIndex)) {
+            VkaAllocation result = heaps[i].Alloc(requirements, typeIndex);
             if (result.memory != VK_NULL_HANDLE) {
                 return result;
             }
@@ -30,5 +30,7 @@ VkaAllocation Allocator::Alloc(VkMemoryRequirements requirements, VkMemoryProper
 }
 
 void Allocator::Free(VkaAllocation allocation) {
-
+    if (pageMap.count(allocation.memory) == 0) return;
+    Page* page = pageMap[allocation.memory];
+    page->Free(allocation);
 }

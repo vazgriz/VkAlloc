@@ -12,6 +12,9 @@ namespace vka {
         bool free;
 
         Node(size_t offset, size_t size);
+
+        void Split(size_t start, size_t size);
+        void Merge();
     };
 }
 

@@ -6,6 +6,7 @@ Heap::Heap(uint32_t heapIndex, size_t pageSize, VkPhysicalDeviceMemoryProperties
     this->heapIndex = heapIndex;
     this->pageSize = pageSize;
     numTypes = props.memoryTypeCount;
+    mutex.reset(new std::mutex());
 
     for (size_t i = 0; i < props.memoryTypeCount; i++) {
         VkMemoryType& type = props.memoryTypes[i];
@@ -44,7 +45,7 @@ uint32_t const Heap::GetIndex() const {
 }
 
 VkaAllocation Heap::Alloc(VkMemoryRequirements requirements, uint32_t typeIndex) {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard<std::mutex> lock(*mutex);
 
     for (size_t i = 0; i < pages.size(); i++) {
         VkaAllocation result = pages[i].AttemptAlloc(requirements);
