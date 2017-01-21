@@ -2,16 +2,56 @@
 
 using namespace vka;
 
-Page::Page(size_t size, uint32_t typeIndex) : head(new Node(0, size), Delete) {
+Page::Page(VkDevice device, size_t size, uint32_t typeIndex, std::unordered_map<VkDeviceMemory, Page*>& pageMap, VkAllocationCallbacks* callbacks) {
     this->size = size;
-    mutex.reset(new std::mutex());
+    mutex = new std::mutex();
+    this->device = device;
+    this->callbacks = callbacks;
+
+    head = new Node(0, size);
+
+    VkMemoryAllocateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    info.allocationSize = size;
+    info.memoryTypeIndex = typeIndex;
+
+    vkAllocateMemory(device, &info, callbacks, &memory);
+
+    pageMap.insert({ memory, this });
+}
+
+Page::Page(Page&& other) {
+    head = other.head;
+    size = other.size;
+    mutex = other.mutex;
+    device = other.device;
+    memory = other.memory;
+    callbacks = other.callbacks;
+
+    other.head = nullptr;
+    other.mutex = nullptr;
+    other.memory = VK_NULL_HANDLE;
+}
+
+Page::~Page() {
+    vkFreeMemory(device, memory, callbacks);
+
+    Node* current = head;
+
+    while (current) {
+        Node* next = current->next;
+        delete current;
+        current = next;
+    }
+
+    delete mutex;
 }
 
 VkaAllocation Page::AttemptAlloc(VkMemoryRequirements requirements) {
     if (requirements.size > size) return {};
     std::lock_guard<std::mutex> lock(*mutex);
 
-    Node* current = head.get();
+    Node* current = head;
 
     while (current) {
         if (current->free && current->size >= requirements.size) {
@@ -49,7 +89,7 @@ VkaAllocation Page::AttemptAlloc(VkMemoryRequirements requirements) {
 void Page::Free(VkaAllocation allocation) {
     std::lock_guard<std::mutex> locker(*mutex);
 
-    Node* current = head.get();
+    Node* current = head;
 
     while (current) {
         if (current->free && current->offset == allocation.offset && current->size == allocation.size) {
@@ -58,18 +98,10 @@ void Page::Free(VkaAllocation allocation) {
         }
     }
 
-    current = head.get();
+    current = head;
 
     while (current) {
         current->Merge();
         current = current->next;
-    }
-}
-
-void Page::Delete(Node* head) {
-    while (head) {
-        Node* next = head->next;
-        delete head;
-        head = next;
     }
 }
