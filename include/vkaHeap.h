@@ -6,6 +6,7 @@
 #include <set>
 #include <mutex>
 #include <memory>
+#include <unordered_map>
 
 #include "include/vkaAllocation.h"
 #include "include/vkaPage.h"
@@ -13,7 +14,7 @@
 namespace vka {
     class Heap {
     public:
-        Heap(uint32_t heapIndex, size_t pageSize, VkPhysicalDeviceMemoryProperties& props);
+        Heap(uint32_t heapIndex, size_t pageSize, VkPhysicalDeviceMemoryProperties& props, VkDevice device, VkAllocationCallbacks* callbacks, std::unordered_map<VkDeviceMemory, Page*>& pageMap);
 
         uint32_t const GetIndex() const;
         bool const Match(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags, uint32_t* typeIndex) const;
@@ -23,6 +24,9 @@ namespace vka {
         uint32_t heapIndex;
         size_t pageSize;
         uint32_t numTypes;
+        VkDevice device;
+        VkAllocationCallbacks* callbacks;
+        std::unordered_map<VkDeviceMemory, Page*>& pageMap;
 
         std::set<uint32_t> typeIndices;
         std::vector<VkMemoryPropertyFlags> heapFlags;

@@ -2,11 +2,13 @@
 
 using namespace vka;
 
-Heap::Heap(uint32_t heapIndex, size_t pageSize, VkPhysicalDeviceMemoryProperties& props) {
+Heap::Heap(uint32_t heapIndex, size_t pageSize, VkPhysicalDeviceMemoryProperties& props, VkDevice device, VkAllocationCallbacks* callbacks, std::unordered_map<VkDeviceMemory, Page*>& pageMap) : pageMap(pageMap) {
     this->heapIndex = heapIndex;
     this->pageSize = pageSize;
     numTypes = props.memoryTypeCount;
     mutex.reset(new std::mutex());
+    this->callbacks = callbacks;
+    this->device = device;
 
     for (size_t i = 0; i < props.memoryTypeCount; i++) {
         VkMemoryType& type = props.memoryTypes[i];
@@ -56,7 +58,7 @@ VkaAllocation Heap::Alloc(VkMemoryRequirements requirements, uint32_t typeIndex)
 
     size_t size = pageSize;
     if (requirements.size > size) size = requirements.size;
-    pages.emplace_back(size, typeIndex);
+    pages.emplace_back(device, size, typeIndex, pageMap, callbacks);
     return pages[pages.size() - 1].AttemptAlloc(requirements);
 }
 

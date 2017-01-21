@@ -11,7 +11,7 @@ Allocator::Allocator(VkPhysicalDevice physicalDevice, VkDevice device, VkAllocat
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &props);
 
     for (size_t i = 0; i < props.memoryHeapCount; i++) {
-        heaps.emplace_back(static_cast<uint32_t>(i), pageSize, props);
+        heaps.emplace_back(static_cast<uint32_t>(i), pageSize, props, device, callbacks, pageMap);
     }
 }
 
