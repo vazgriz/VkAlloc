@@ -16,6 +16,7 @@ namespace vka {
         Page(Page&& other);
         ~Page();
 
+        bool const Match(uint32_t typeIndex) const;
         VkaAllocation AttemptAlloc(VkMemoryRequirements requirements);
         void Free(VkaAllocation allocation);
 
@@ -26,6 +27,7 @@ namespace vka {
         VkDevice device;
         VkDeviceMemory memory;
         VkAllocationCallbacks* callbacks;
+        uint32_t typeIndex;
     };
 }
 

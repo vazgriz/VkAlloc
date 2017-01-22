@@ -7,6 +7,7 @@ Page::Page(VkDevice device, size_t size, uint32_t typeIndex, std::unordered_map<
     mutex = new std::mutex();
     this->device = device;
     this->callbacks = callbacks;
+    this->typeIndex = typeIndex;
 
     head = new Node(0, size);
 
@@ -45,6 +46,10 @@ Page::~Page() {
     }
 
     delete mutex;
+}
+
+bool const Page::Match(uint32_t typeIndex) const {
+    return this->typeIndex == typeIndex;
 }
 
 VkaAllocation Page::AttemptAlloc(VkMemoryRequirements requirements) {

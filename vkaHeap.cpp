@@ -49,9 +49,11 @@ VkaAllocation Heap::Alloc(VkMemoryRequirements requirements, uint32_t typeIndex)
     std::lock_guard<std::mutex> lock(*mutex);
 
     for (size_t i = 0; i < pages.size(); i++) {
-        VkaAllocation result = pages[i].AttemptAlloc(requirements);
-        if (result.memory != VK_NULL_HANDLE) {
-            return result;
+        if (pages[i].Match(typeIndex)) {
+            VkaAllocation result = pages[i].AttemptAlloc(requirements);
+            if (result.memory != VK_NULL_HANDLE) {
+                return result;
+            }
         }
     }
 
