@@ -5,7 +5,6 @@ using namespace vka;
 Heap::Heap(uint32_t heapIndex, size_t pageSize, VkPhysicalDeviceMemoryProperties& props, VkDevice device, VkAllocationCallbacks* callbacks, std::unordered_map<VkDeviceMemory, Page*>& pageMap) : pageMap(pageMap) {
     this->heapIndex = heapIndex;
     this->pageSize = pageSize;
-    numTypes = props.memoryTypeCount;
     mutex.reset(new std::mutex());
     this->callbacks = callbacks;
     this->device = device;
@@ -14,7 +13,7 @@ Heap::Heap(uint32_t heapIndex, size_t pageSize, VkPhysicalDeviceMemoryProperties
         VkMemoryType& type = props.memoryTypes[i];
 
         if (type.heapIndex == heapIndex) {
-            typeIndices.emplace(static_cast<uint32_t>(i));
+            typeIndices.emplace_back(static_cast<uint32_t>(i));
             heapFlags.emplace_back(type.propertyFlags);
         }
     }
@@ -24,10 +23,10 @@ bool const Heap::Match(VkMemoryRequirements requirements, VkMemoryPropertyFlags 
     bool typeMatch = false;
     bool flagMatch = false;
 
-    for (uint32_t i = 0; i < numTypes; i++) {
-        if ((requirements.memoryTypeBits & (1 << i)) != 0 && typeIndices.count(i) > 0) {
+    for (uint32_t i = 0; i < typeIndices.size(); i++) {
+        if ((requirements.memoryTypeBits & (1 << typeIndices[i])) != 0) {
             typeMatch = true;
-            *typeIndex = i;
+            *typeIndex = typeIndices[i];
             break;
         }
     }

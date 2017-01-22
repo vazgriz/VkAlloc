@@ -23,12 +23,11 @@ namespace vka {
     private:
         uint32_t heapIndex;
         size_t pageSize;
-        uint32_t numTypes;
         VkDevice device;
         VkAllocationCallbacks* callbacks;
         std::unordered_map<VkDeviceMemory, Page*>& pageMap;
 
-        std::set<uint32_t> typeIndices;
+        std::vector<uint32_t> typeIndices;
         std::vector<VkMemoryPropertyFlags> heapFlags;
         std::vector<Page> pages;
         std::unique_ptr<std::mutex> mutex;
