@@ -13,32 +13,20 @@ Heap::Heap(uint32_t heapIndex, size_t pageSize, VkPhysicalDeviceMemoryProperties
         VkMemoryType& type = props.memoryTypes[i];
 
         if (type.heapIndex == heapIndex) {
-            typeIndices.emplace_back(static_cast<uint32_t>(i));
-            heapFlags.emplace_back(type.propertyFlags);
+            memoryTypes.emplace_back(MemoryType{ static_cast<uint32_t>(i), type.propertyFlags });
         }
     }
 }
 
 bool const Heap::Match(VkMemoryRequirements requirements, VkMemoryPropertyFlags flags, uint32_t* typeIndex) const {
-    bool typeMatch = false;
-    bool flagMatch = false;
-
-    for (uint32_t i = 0; i < typeIndices.size(); i++) {
-        if ((requirements.memoryTypeBits & (1 << typeIndices[i])) != 0) {
-            typeMatch = true;
-            *typeIndex = typeIndices[i];
-            break;
-        }
-    }
-    
-    for (size_t i = 0; i < heapFlags.size(); i++) {
-        if ((heapFlags[i] & flags) == flags) {
-            flagMatch = true;
-            break;
+    for (size_t i = 0; i < memoryTypes.size(); i++) {
+        if ((requirements.memoryTypeBits & (1 << memoryTypes[i].typeIndex)) != 0 && (memoryTypes[i].flags & flags) == flags) {
+            *typeIndex = static_cast<uint32_t>(i);
+            return true;
         }
     }
 
-    return typeMatch && flagMatch;
+    return false;
 }
 
 uint32_t const Heap::GetIndex() const {

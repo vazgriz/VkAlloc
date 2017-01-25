@@ -21,14 +21,17 @@ namespace vka {
         VkaAllocation Alloc(VkMemoryRequirements requirements, uint32_t typeIndex);
 
     private:
+        struct MemoryType {
+            uint32_t typeIndex;
+            VkMemoryPropertyFlags flags;
+        };
         uint32_t heapIndex;
         size_t pageSize;
         VkDevice device;
         VkAllocationCallbacks* callbacks;
         std::unordered_map<VkDeviceMemory, Page*>& pageMap;
 
-        std::vector<uint32_t> typeIndices;
-        std::vector<VkMemoryPropertyFlags> heapFlags;
+        std::vector<MemoryType> memoryTypes;
         std::vector<Page> pages;
         std::unique_ptr<std::mutex> mutex;
     };
