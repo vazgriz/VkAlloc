@@ -18,9 +18,10 @@ void Node::Split(size_t start, size_t size) {
     } else if (start > offset) {
         //some space was left in the beginning, so use this node for that and mark a new one as not free
         size_t startSpace = start - offset;
+		size_t middleSpace = this->size - startSpace;
         this->size = startSpace;
 
-        Node* middle = new Node(start, size);
+        Node* middle = new Node(start, middleSpace);
         middle->next = next;
         next = middle;
 
@@ -30,6 +31,7 @@ void Node::Split(size_t start, size_t size) {
         free = false;
         size_t endOffset = start + size;
         size_t endSpace = (offset + this->size) - endOffset;
+		this->size = size;
 
         Node* end = new Node(endOffset, endSpace);
         end->next = next;
